@@ -3,14 +3,18 @@
 namespace ZfUser\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+
 use Zend\Math\Rand,
     Zend\Crypt\Key\Derivation\Pbkdf2;
+
+use Zend\Stdlib\Hydrator;
 
 /**
  * ZfuserUsers
  *
  * @ORM\Table(name="zfuser_users")
  * @ORM\Entity
+ * @ORM\HasLifecycleCallbacks //Executa callback quando algum evento for utilizado
  */
 class User {
 
@@ -79,7 +83,15 @@ class User {
      */
     private $updatedAt;
 
-    public function __construct() {
+    public function __construct(array $options = array()) {
+        
+        //Implementa o Hydrator nesta entidade
+        /* As 2 linhas abaixo é igual a proxima linha descomentada
+        $hydrator = new Hydrator\ClassMethods;
+        $hydrator->hydrate($options, $this);
+        */
+        (new Hydrator\ClassMethods)->hydrate($options, $this);
+        
         $this->createdAt = new \DateTime("now");
         $this->updatedAt = new \DateTime("now");
 
@@ -164,12 +176,15 @@ class User {
         return $this;
     }
 
-    public function setCreatedAt(\DateTime $createdAt) {
-        $this->createdAt = $createdAt;
+    public function setCreatedAt() {
+        $this->createdAt = new \DateTime("now");
     }
 
-    public function setUpdatedAt(\DateTime $updatedAt) {
-        $this->updatedAt = $updatedAt;
+    /**
+     * @ORM\prePersist
+     */
+    public function setUpdatedAt() {
+        $this->updatedAt = new \DateTime("now");
     }
 
 }
